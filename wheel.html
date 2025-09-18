@@ -10,7 +10,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: transparent; /* Transparent for OBS */
+      background: transparent;
       font-family: Arial, sans-serif;
       overflow: hidden;
     }
@@ -18,14 +18,14 @@
       position: relative;
       width: 800px;
       height: 400px;
-      border: 5px solid #ffd700; /* Gold rim like Price is Right */
+      border: 5px solid #ffd700;
       border-radius: 10px;
-      background: #333; /* Dark background */
+      background: #333;
       overflow: hidden;
     }
     .wheel {
       display: flex;
-      transition: transform 6s cubic-bezier(0.25, 0.1, 0.25, 1); /* Smooth spin */
+      transition: transform 6s cubic-bezier(0.25, 0.1, 0.25, 1);
       position: absolute;
       top: 0;
     }
@@ -50,7 +50,7 @@
       left: 20px;
       padding: 10px 20px;
       font-size: 16px;
-      background: #ff4500; /* Bright orange */
+      background: #ff4500;
       color: #fff;
       border: none;
       border-radius: 5px;
@@ -67,7 +67,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: #ffd700; /* Gold popup */
+      background: #ffd700;
       padding: 20px;
       border: 3px solid #000;
       border-radius: 10px;
@@ -102,32 +102,36 @@
 
   <script src="tmi.min.js"></script>
   <script>
-    // Replace with your Twitch channel name (lowercase, e.g., "ninja")
+    // Replace with your Twitch channel name (lowercase)
     const channelName = "your_channel_name";
-    const names = new Set(); // Store unique usernames
+    const names = new Set();
     let isSpinning = false;
 
-    // Connect to Twitch chat
+    if (typeof tmi === "undefined") {
+      console.error("tmi.js failed to load");
+    } else {
+      console.log("tmi.js loaded successfully");
+    }
+
     const client = new tmi.Client({
       channels: [channelName]
     });
     client.connect().catch(error => console.error("Twitch connection error:", error));
 
-    // Listen for !enter command
     client.on("message", (channel, tags, message, self) => {
       if (message.toLowerCase() === "!enter") {
         const username = tags["display-name"];
         if (username && !names.has(username)) {
           names.add(username);
           updateWheel();
+          console.log("Added user:", username);
         }
       }
     });
 
-    // Update wheel with names
     function updateWheel() {
       const wheel = document.getElementById("wheel");
-      wheel.innerHTML = ""; // Clear existing segments
+      wheel.innerHTML = "";
       const nameArray = Array.from(names);
       if (nameArray.length === 0) {
         const segment = document.createElement("div");
@@ -140,7 +144,6 @@
       nameArray.forEach((name, index) => {
         const segment = document.createElement("div");
         segment.className = "segment";
-        // Colorful segments like Price is Right
         segment.style.background = `hsl(${(index * 360) / nameArray.length}, 70%, 50%)`;
         segment.textContent = name;
         wheel.appendChild(segment);
@@ -153,20 +156,17 @@
       const spinButton = document.getElementById("spinButton");
       spinButton.disabled = true;
 
-      // Random spin distance (3-5 rotations + random segment)
       const nameArray = Array.from(names);
       const spinDistance = 360 * (3 + Math.random() * 2) + (Math.random() * 360 / nameArray.length);
       const wheel = document.getElementById("wheel");
-      wheel.style.transform = `translateX(-${spinDistance * 100}px)`; // Spin left
+      wheel.style.transform = `translateX(-${spinDistance * 100}px)`;
 
-      // Show winner after spin
       setTimeout(() => {
         const winnerIndex = Math.floor((spinDistance % 360) / (360 / nameArray.length)) % nameArray.length;
         const winner = nameArray[winnerIndex] || "No Entrants";
         document.getElementById("winnerText").textContent = `Winner: ${winner}!`;
         document.getElementById("popup").style.display = "block";
 
-        // Reset wheel
         wheel.style.transition = "none";
         wheel.style.transform = "translateX(0)";
         setTimeout(() => {
@@ -174,7 +174,7 @@
           isSpinning = false;
           spinButton.disabled = false;
         }, 100);
-      }, 6000); // Match animation duration (6 seconds)
+      }, 6000);
     }
 
     function closePopup() {
@@ -183,4 +183,3 @@
   </script>
 </body>
 </html>
-
